@@ -172,7 +172,7 @@ const SingleCard = ({ loadItem, updateOrders }) => {
                   <Button
                     className={cn(
                       styles["single-card__button"],
-                      styles["single-card__button_add-user"],
+                      styles["single-card__button_add-users"],
                       {
                         [styles["single-card__button_add-user_active"]]:
                           author.is_subscribed,
