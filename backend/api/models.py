@@ -1,26 +1,45 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import F
 
-from users.models import AuthUser
 
 
 # Здесь чтоб не мучиться с цикличностью
-
-
-
-class User(AuthUser):
+class User(AbstractUser):
     """Переопределенный User."""
 
-    # avatar = models.ImageField(upload_to='media/users', blank=True)
-    follows = models.ManyToManyField('User', symmetrical=False, blank=True)
-    favorite_recipes = models.ManyToManyField('Recipe', blank=True)
-    shop_list = models.ManyToManyField('Recipe', related_name='shop_set', blank=True)
+    # username_validator = UnicodeUsernameValidator()
 
-# class UserFollows(models.Model):
-#     # user подписан на follow
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follows')
-#     follow = models.ForeignKey(User, on_delete=models.CASCADE)
+    # username = models.CharField(unique=True, max_length=150)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
+    email = models.EmailField(max_length=150)
+    avatar = models.ImageField(upload_to='media/users', blank=True)
+    follows = models.ManyToManyField('User', symmetrical=False, blank=True, through='UserFollows', related_name='+')
+    favorite_recipes = models.ManyToManyField('Recipe', related_name='+', blank=True)
+    shop_list = models.ManyToManyField('Recipe', related_name='+', blank=True)
+
+    REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
+
+    # class Meta(AbstractUser.Meta):
+    #     constraints = [
+
+
+class UserFollows(models.Model):
+    # user подписан на follow
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='who_follow')
+    follow = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fol')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'follow'], name='unique_follow'),
+            models.CheckConstraint(
+                name='ban_self_follow',
+                check=~models.Q(user=F('follow'))
+            )
+        ]
+
 
 
 class Tag(models.Model):
@@ -40,7 +59,7 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(max_length=50)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} {self.measurement_unit}'
 
 
 class Recipe(models.Model):
@@ -70,19 +89,24 @@ class IngredientsForRecipe(models.Model):
     amount = models.PositiveIntegerField()
 
     def __str__(self):
-        return f'{self.recipe.name[:10]} {self.ingredient.name} {self.amount} {self.ingredient.measurement_unit} '
+        return f'{self.ingredient.name} для {self.recipe.name[:10]}'
 
 
-# class UserField(models.Model):
-#
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, unique=False)
-#
-# class Follow(UserField):
-#     """Подписки, избранные рецепты и список для покупок пользователя."""
-#
-#     follows = models.ForeignKey(User, related_name='follows', on_delete=models.CASCADE)
-#
-#
+class U(models.Model):
+
+    user = models.CharField(max_length=50)
+    follows = models.ManyToManyField('U', related_name='fol')
+    fav_rec = models.ManyToManyField('Rec', related_name='fav')
+    shop_list = models.ManyToManyField('Rec', related_name='shop')
+    def __str__(self):
+        return self.user
+
+class Rec(models.Model):
+    name = models.CharField(max_length=50)
+    def __str__(self):
+        return self.name
+
+
 # class FavoriteRecipe(UserField):
 #     """Избранные рецепты."""
 #
@@ -90,8 +114,8 @@ class IngredientsForRecipe(models.Model):
 #
 # class ShopList(UserField):
 #     """Покупки."""
-#
-#     shop_list = models.ManyToManyField(Recipe, related_name='shop_list', blank=True)
+
+    shop_list = models.ManyToManyField(Recipe, related_name='shop_list', blank=True)
 
 
 

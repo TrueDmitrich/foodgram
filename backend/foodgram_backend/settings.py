@@ -100,6 +100,13 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-# DJOSER = {
-#     'LOGIN_FIELD': 'email',
-# }
+DJOSER = {
+    'LOGIN_FIELD': 'email',
+    'PERMISSIONS': {
+        'user_list': ['rest_framework.permissions.AllowAny'],
+        # 'user': ['rest_framework.permissions.AllowAny'],
+    },
+    'SERIALIZERS': {
+        'user_create': 'users.serializers.UserSerializer',
+    }
+}
