@@ -5,7 +5,7 @@ from django.contrib.messages import SUCCESS
 from django.shortcuts import render
 from djoser.views import UserViewSet
 from pyexpat.errors import messages
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, pagination
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -23,8 +23,12 @@ class AuthViewSet(UserViewSet):
     """Дополненный viewset из Djoser."""
 
     serializer_class = UserSerializer
+    pagination_class = pagination.LimitOffsetPagination
 
+
+# Try to remove
     def get_queryset(self):
+        print(1)
         return User.objects.all()
 
     # Доделать
@@ -35,9 +39,10 @@ class AuthViewSet(UserViewSet):
         user = request.user
         if request.method == 'PUT':
             serializer = self.get_serializer(user, data=request.data)
-            if not serializer.is_valid():
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            serializer.save(data=request.data)
+            self.perform_update(serializer)
+            # if not serializer.is_valid():
+            #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # serializer.save(data=request.data)
             # Допилить ответ через юзера наверн
             return Response(serializer.data, status=status.HTTP_200_OK)
         if request.method == 'DELETE':

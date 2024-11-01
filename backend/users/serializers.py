@@ -1,5 +1,6 @@
 from pprint import pprint
 
+from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.fields import empty
@@ -11,7 +12,6 @@ from api.serializers_fields import ImageBase64Field
 class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     avatar = ImageBase64Field(required=False)
-
 
     class Meta:
         model = User
