@@ -53,25 +53,27 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if 'tags' in query:
             notes = Recipe.tags.through.objects.select_related('tag')
             tags = query.getlist('tags')
-
-            passed_recipe_id = set()
-            loop = 0
-            for tag in tags:
-                loop_res = [note.recipe_id for note in notes.filter(tag__name=tag)]
-                if loop == 0:
-                    passed_recipe_id = set(loop_res)
-                else:
-                    passed_recipe_id.intersection_update(set(loop_res))
-                loop += 1
-
+            passed_recipe_id = set([note.recipe_id for note in notes.filter(tag__name__in=tags)])
             qs = qs.filter(pk__in=passed_recipe_id)
+
+            # passed_recipe_id = set()
+            # loop = 0
+            # for tag in tags:
+            #     loop_res = [note.recipe_id for note in notes.filter(tag__name=tag)]
+            #     if loop == 0:
+            #         passed_recipe_id = set(loop_res)
+            #     else:
+            #         passed_recipe_id.intersection_update(set(loop_res))
+            #     loop += 1
+
+            # qs = qs.filter(pk__in=passed_recipe_id)
         if self.request.user.is_authenticated:
-            if 'is_favorited' in query and query['is_favorited'] == 1:
-                user_favorite_recipes = self.request.user.favorite_recipes.all()
-                qs = qs.filter(favorite_recipe__in=user_favorite_recipes)
-            if 'is_in_shopping_cart' in query and query['is_in_shopping_cart'] == 1:
-                user_shop_list = self.request.user.shop_list.all()
-                qs = qs.filter(shop_list__in=user_shop_list)
+            if ('is_favorited' in query) and query['is_favorited'] == '1':
+                u_fav = [r.id for r in self.request.user.favorite_recipes.all()]
+                qs = qs.filter(pk__in=u_fav)
+            if ('is_in_shopping_cart' in query) and query['is_in_shopping_cart'] == '1':
+                u_shop = [r.id for r in self.request.user.shop_list.all()]
+                qs = qs.filter(pk__in=u_shop)
         return qs
 
 
@@ -156,16 +158,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
         DB = request.user.shop_list.through.objects
 
         if request.method == 'POST':
+            if (DB.filter(user=request.user, recipe_id=obj.id,).exists()
+            ):
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             DB.create(
                 user_id=request.user.id,
                 recipe_id=obj.id,
             )
-        return Response(
-            # data=RecipeShoplistSerializer(self.get_object()).data,
-            data=RecipeShoplistFavoriteSerializer(self.get_object(), context={'request': request}).data,
-            status=status.HTTP_201_CREATED)
+            return Response(
+                # data=RecipeShoplistSerializer(self.get_object()).data,
+                data=RecipeShoplistFavoriteSerializer(self.get_object(), context={'request': request}).data,
+                status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
+            if not (DB.filter(user=request.user, recipe_id=obj.id,).exists()
+            ):
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             DB.filter(
                 user_id=request.user.id,
                 recipe_id=pk).delete()
@@ -176,15 +184,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
         obj = self.get_object()
         DB = request.user.favorite_recipes.through.objects
         if request.method == 'POST':
+            if (DB.filter(user=request.user, recipe_id=obj.id).exists()
+            ):
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             DB.create(
                 user_id=request.user.id,
                 recipe_id=obj.id,
             )
-        return Response(
-            data=RecipeShoplistFavoriteSerializer(self.get_object(), context={'request': request}).data,
-            status=status.HTTP_201_CREATED)
+            return Response(
+                data=RecipeShoplistFavoriteSerializer(self.get_object(), context={'request': request}).data,
+                status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
+            if not (DB.filter(user=request.user, recipe_id=obj.id).exists()
+            ):
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             DB.filter(
                 user_id=request.user.id,
                 recipe_id=obj.id,

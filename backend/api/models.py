@@ -30,8 +30,8 @@ class User(AbstractUser):
 
 class UserFollows(models.Model):
     # user подписан на follow
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='who_follow')
-    follow = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fol')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folws' )
+    follow = models.ForeignKey(User, on_delete=models.CASCADE, related_name='who_follow')
 
     class Meta:
         constraints = [
@@ -97,11 +97,11 @@ class IngredientsForRecipe(models.Model):
     """Список ингредиентов и их количества для рецепта."""
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,)
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    amount = models.PositiveIntegerField()
+    amount = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['recipe', 'amount'], name='unique_rectipes_ingr')
+            models.UniqueConstraint(fields=['recipe', 'ingredient'], name='unique_rectipes_ingr')
         ]
 
     def __str__(self):

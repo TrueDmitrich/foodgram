@@ -10,25 +10,26 @@ class IsUAu(permissions.BasePermission):
 class RecipesPermission(permissions.BasePermission):
     """Разрешения для рецептов."""
 
-    ACTION_LIST = [
+    NO_AUTH_ACTION_LIST = [
         'get_link',
+        'list',
+        'retrieve'
+    ]
+    AUTH_ACTION_LIST = [
         'download_shopping_cart',
         'shopping_cart',
         'favorite',
     ]
 
     def has_permission(self, request, view):
-        if (request.method in permissions.SAFE_METHODS
+        if (view.action in self.NO_AUTH_ACTION_LIST
             or request.user.is_authenticated
-            or view.action in self.ACTION_LIST
         ):
             return True
         return False
 
     def has_object_permission(self, request, view, obj):
-        if (request.method == "GET"
-            or request.user == obj.author
-            or view.action in self.ACTION_LIST
-        ):
+        if (view.action in (self.NO_AUTH_ACTION_LIST + self.AUTH_ACTION_LIST)
+            or request.user == obj.author):
             return True
         return False

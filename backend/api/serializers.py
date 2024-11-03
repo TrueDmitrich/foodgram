@@ -1,12 +1,15 @@
 import base64
 from pprint import pprint
 
+from IPython.utils.coloransi import value
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
+from djoser.permissions import CurrentUserOrAdmin
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 from urllib3 import request
 
-from api.serializers_fields import ImageBase64Field
+from api.serializers_fields import ImageBase64Field, empty_list, unique_ingredients, unique_tags
 from api.models import Tag, Ingredient, Recipe, IngredientsForRecipe
 from users.serializers import UserSerializer
 
@@ -93,6 +96,7 @@ class IngredientForRecipeGetSerializer(serializers.ModelSerializer):
 class BaseRecipeSerializer(serializers.ModelSerializer):
 
     image = ImageBase64Field()
+    # author = CurrentUserDefault()
 
     class Meta:
         model = Recipe
@@ -169,12 +173,22 @@ class RecipeCreateSerializer(BaseRecipeSerializer, GetUser):
 
     class Meta(BaseRecipeSerializer.Meta):
         pass
-        # fields = BaseRecipeSerializer.Meta.fields
-        # fields += []
+
+    # на validators в поле не реагирует
+    def validate_ingredients(self, value):
+        empty_list(value)
+        unique_ingredients(value)
+        return value
+
+    def validate_tags(self, value):
+        empty_list(value)
+        unique_tags(value)
+        return value
 
     def create(self, validated_data):
         tags = validated_data.pop('tags', [])
         ingredients = validated_data.pop('ingredients', [])
+
         recipe = Recipe.objects.create(**validated_data, author=self.get_user())
         for tag in tags:
             Recipe.tags.through.objects.create(recipe_id=recipe.id, tag_id=tag.id)
@@ -188,10 +202,10 @@ class RecipeCreateSerializer(BaseRecipeSerializer, GetUser):
         return recipe
 
     def update(self, instance, validated_data):
+        tags = empty_list(validated_data.pop('tags', []))
+        ingredients_list = empty_list(validated_data.pop('ingredients', []))
         tags_already_exist = [tag for tag in instance.tags.all()]
         ingredients_already_exist = [ing for ing in instance.ingredients.all()]
-        tags = validated_data.pop('tags', [])
-        ingredients_list = validated_data.pop('ingredients', [])
         ingredients = [ing['ingredient'] for ing in ingredients_list]
         if tags_already_exist != tags:
             DB = instance.tags.through.objects
@@ -248,10 +262,9 @@ class UserFollRecipeSerializer(UserSerializer):
         return Recipe.objects.filter(author=obj)
 
     def get_recipes(self, obj):
-        # add pagination
-        # return []
+        recipes_limit = int(self.context['request'].query_params.get('recipes_limit', 5))
         return RecipeShoplistFavoriteSerializer(
-            self.get_gs(obj), many=True).data
+            self.get_gs(obj)[:recipes_limit], many=True).data
 
     def get_recipes_count(self, obj):
         return self.get_gs(obj).count()

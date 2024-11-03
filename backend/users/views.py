@@ -11,7 +11,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from api.admin import FavoritesRecipesInline
-from users.permissions import OwnerOrReadOnly
+from api.paginations import LimitPagePagination
+from users.permissions import UserPermission
 from users.serializers import UserSerializer, UserImageSerializer
 from api.serializers import UserFollRecipeSerializer
 
@@ -24,7 +25,8 @@ class AuthViewSet(UserViewSet):
     """Дополненный viewset из Djoser."""
 
     serializer_class = UserSerializer
-    pagination_class = pagination.LimitOffsetPagination
+    permission_classes = (UserPermission,)
+    # pagination_class = pagination.LimitOffsetPagination
 
 
 # Try to remove
@@ -61,27 +63,36 @@ class AuthViewSet(UserViewSet):
         return super().me(request)
 
     @action(methods=['get'], detail=False)
-    def subscriptions(self):
+    def subscriptions(self, request):
         user = self.request.user
-        foll = user.followers.all()
-        return Response(UserFollRecipeSerializer(
-            foll, context={'request': self.request}
-        ).data, status=status.HTTP_200_OK)
+        foll = [u.follow for u in user.folws.all().select_related('follow')]
+        data = self.paginate_queryset(UserFollRecipeSerializer(
+            foll, context={'request': request}, many=True
+        ).data)
+        return self.get_paginated_response(data)
 
     @action(methods=['post', 'delete'], detail=True)
     def subscribe(self, request, id=None):
         obj = self.get_object()
         DB = request.user.follows.through.objects
         if request.method == 'POST':
+            if (DB.filter(user=request.user, follow=obj,).exists()
+                or obj == request.user
+            ):
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             DB.create(
                 user=request.user,
                 follow=obj,
             )
-        return Response(
-            data=UserFollRecipeSerializer(self.get_object(), context={'request': request}).data,
-            status=status.HTTP_201_CREATED)
+            return Response(
+                data=UserFollRecipeSerializer(self.get_object(), context={'request': request}).data,
+                status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
+            if not (DB.filter(user=request.user, follow=obj,).exists()
+                or obj == request.user
+            ):
+                return Response(status=status.HTTP_400_BAD_REQUEST)
             DB.filter(
                 user=request.user.id,
                 follow=obj.id,

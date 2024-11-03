@@ -8,6 +8,22 @@ def base64_validator(value):
     # raise serializers.ValidationError(code='required')
     return value
 
+def empty_list(value):
+    if len(value) == 0:
+        raise serializers.ValidationError('Empty list.')
+    return value
+
+def unique_ingredients(value):
+    if len(value) != len(set([v['ingredient'] for v in value])):
+        raise serializers.ValidationError('Duplicate.')
+    return value
+
+def unique_tags(value):
+    if len(value) != len(set(value)):
+        raise serializers.ValidationError('Duplicate.')
+    return value
+
+
 class ImageBase64Field(serializers.ImageField):
     """Изображение в формате base 64."""
 
