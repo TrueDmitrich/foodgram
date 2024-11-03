@@ -1,7 +1,6 @@
 from datetime import timedelta
 from pathlib import Path
 
-# from api.paginations import LimitPagePagination
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
