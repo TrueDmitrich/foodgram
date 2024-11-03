@@ -3,7 +3,9 @@ from pprint import pprint
 from Tools.scripts.make_ctype import method
 # from django.contrib.admin import action
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Value
+from django.http import FileResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions, pagination, status
 from rest_framework.decorators import action
@@ -144,9 +146,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 }
             else:
                 shop_list[ing.ingredient.name]['amount'] += ing.amount
-#  Допилить выдачу
-        print(shop_list)
-        return 1
+        content = ''
+        for key in shop_list.keys():
+            content += f'{key} {shop_list[key]["amount"]} {shop_list[key]["measurement_unit"]}\n'
+        with open('shop_list.txt', 'w', encoding='utf-8') as file_txt:
+            file_txt.write(content)
+
+        return FileResponse('shop_list.txt', 'rb')
 
 # Допилить разрешения
     # Добавть проверку авторизации
