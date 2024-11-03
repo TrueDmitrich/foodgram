@@ -47,7 +47,7 @@ class UserFollows(models.Model):
 class Tag(models.Model):
     """Теги для рецептов."""
 
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(unique=True)
 
     def __str__(self):
@@ -59,6 +59,9 @@ class Ingredient(models.Model):
 
     name = models.CharField(max_length=50)
     measurement_unit = models.CharField(max_length=50)
+
+    class Meta:
+        ordering = ('name',)
 
     def __str__(self):
         return f'{self.name} {self.measurement_unit}'
@@ -72,7 +75,7 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         related_name='recipes',
     )
-    name = models.CharField(max_length=256)
+    name = models.TextField(max_length=256)
     image = models.ImageField(upload_to='media/')
     text = models.TextField()
     ingredients = models.ManyToManyField(

@@ -1,6 +1,8 @@
 from datetime import timedelta
 from pathlib import Path
 
+# from api.paginations import LimitPagePagination
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-@)7js&tany!3a+5h1t=#=1n&87^5d0yap+r7*@(&3+m%5@prl3'
@@ -18,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_filters',
     'djoser',
 
     'api.apps.ApiConfig',
@@ -96,7 +99,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'api.paginations.LimitPagePagination',
     'PAGE_SIZE': 6,
 }
 

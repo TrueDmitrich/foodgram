@@ -12,7 +12,8 @@ from rest_framework.response import Response
 
 from api.admin import FavoritesRecipesInline
 from users.permissions import OwnerOrReadOnly
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, UserImageSerializer
+from api.serializers import UserFollRecipeSerializer
 
 User = get_user_model()
 
@@ -34,11 +35,13 @@ class AuthViewSet(UserViewSet):
     # Доделать
     @action(methods=['put', 'delete'], url_path='me/avatar', detail=False)
     def avatar(self, request):
+        # уБРАТЬ в пермишенс
         if not self.request.user.is_authenticated:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         user = request.user
         if request.method == 'PUT':
-            serializer = self.get_serializer(user, data=request.data)
+            serializer = UserImageSerializer(user, data=request.data)
+            serializer.is_valid(raise_exception=True)
             self.perform_update(serializer)
             # if not serializer.is_valid():
             #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -48,10 +51,7 @@ class AuthViewSet(UserViewSet):
         if request.method == 'DELETE':
             user.avatar = None
             user.save()
-            return Response(SUCCESS_DELETE_AVATAR, status=status.HTTP_200_OK)
-
-
-
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
     @action(methods=['get'], detail=False)
@@ -60,3 +60,33 @@ class AuthViewSet(UserViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         return super().me(request)
 
+    @action(methods=['get'], detail=False)
+    def subscriptions(self):
+        user = self.request.user
+        foll = user.followers.all()
+        return Response(UserFollRecipeSerializer(
+            foll, context={'request': self.request}
+        ).data, status=status.HTTP_200_OK)
+
+    @action(methods=['post', 'delete'], detail=True)
+    def subscribe(self, request, id=None):
+        obj = self.get_object()
+        DB = request.user.follows.through.objects
+        if request.method == 'POST':
+            DB.create(
+                user=request.user,
+                follow=obj,
+            )
+        return Response(
+            data=UserFollRecipeSerializer(self.get_object(), context={'request': request}).data,
+            status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            DB.filter(
+                user=request.user.id,
+                follow=obj.id,
+            ).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+# http://localhost/api/users/{id}/subscribe/
+# http://localhost/api/users/subscriptions/

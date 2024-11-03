@@ -1,8 +1,4 @@
-from pprint import pprint
-
-from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
-from rest_framework.decorators import action
 from rest_framework.fields import empty
 
 from api.models import User
@@ -15,7 +11,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'avatar')
+        fields = ['email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed', 'avatar']
+
     def get_is_subscribed(self, obj):
         if self.context["request"].user.is_authenticated:
             return obj in self.context["request"].user.follows.all()
@@ -26,5 +23,11 @@ class UserSerializer(serializers.ModelSerializer):
             self.fields.fields['avatar'].required = True
         return super().run_validation(data)
 
+class UserImageSerializer(serializers.ModelSerializer):
 
+    avatar = ImageBase64Field(required=True)
+
+    class Meta:
+        model = User
+        fields = ['avatar']
 

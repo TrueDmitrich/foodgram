@@ -136,17 +136,29 @@ class RecipeSerializer(BaseRecipeSerializer):
         ])
 
     def get_ingredients(self, obj):
-        qs = IngredientsForRecipe.objects.filter(recipe=obj).all()
+        qs = IngredientsForRecipe.objects.filter(recipe=obj)
+        # qs = IngredientsForRecipe.objects.filter(recipe=obj).all()
         return IngredientForRecipeGetSerializer(qs, many=True).data
 
     def get_user(self):
         return self.context['request'].user
 
     def get_is_favorited(self, obj):
-        return bool(obj in self.get_user().favorite_recipes.all())
+        # self.context['request'].user.is_authenticated()
+        return (self.get_user().is_authenticated) and (obj in self.get_user().favorite_recipes.all())
 
     def get_is_in_shopping_cart(self, obj):
-        return bool(obj in self.get_user().shop_list.all())
+        return (self.get_user().is_authenticated) and (obj in self.get_user().shop_list.all())
+
+class RecipeShoplistFavoriteSerializer(BaseRecipeSerializer):
+    """Для добавления в список покупок."""
+    class Meta(BaseRecipeSerializer.Meta):
+        fields = (
+            'id',
+            'name',
+            'image',
+            'cooking_time',
+        )
 
 
 class RecipeCreateSerializer(BaseRecipeSerializer, GetUser):
@@ -181,7 +193,6 @@ class RecipeCreateSerializer(BaseRecipeSerializer, GetUser):
         tags = validated_data.pop('tags', [])
         ingredients_list = validated_data.pop('ingredients', [])
         ingredients = [ing['ingredient'] for ing in ingredients_list]
-        # Добавить сортировку для проверки
         if tags_already_exist != tags:
             DB = instance.tags.through.objects
             tags_set = set(tags + tags_already_exist)
@@ -199,6 +210,48 @@ class RecipeCreateSerializer(BaseRecipeSerializer, GetUser):
                     DB.create(recipe_id=instance.id, ingredient_id=ing.id, amount=ing_amount)
                 if ing not in ingredients:
                     DB.filter(recipe_id=instance.id, ingredient_id=ing.id).delete()
-        # Пилим дальше
+
+        # if validated_data.get('image'):
+        #     # проверить тоже ли изобр
+        #     # Check workability
+        #     instance.image.delete()
+        #     data = validated_data.pop('image')
+        #     format, imgstr = data.split(';base64,')
+        #     ext = format.split('/')[-1]
+        #     data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+        #     instance.image = data
+
+        instance.refresh_from_db()
+
+        instance.name = validated_data.pop('name', instance.name)
+        instance.text = validated_data.pop('text', instance.text)
+        instance.image = validated_data.pop('image', instance.image)
+        instance.cooking_time = validated_data.pop('cooking_time', instance.cooking_time)
+        instance.save()
+
+        return instance
 
 
+class UserFollRecipeSerializer(UserSerializer):
+    """Выдача списка подписок."""
+
+    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes_count = serializers.SerializerMethodField(read_only=True)
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + [
+            'recipes',
+            'recipes_count'
+        ]
+
+    def get_gs(self, obj):
+        return Recipe.objects.filter(author=obj)
+
+    def get_recipes(self, obj):
+        # add pagination
+        # return []
+        return RecipeShoplistFavoriteSerializer(
+            self.get_gs(obj), many=True).data
+
+    def get_recipes_count(self, obj):
+        return self.get_gs(obj).count()
