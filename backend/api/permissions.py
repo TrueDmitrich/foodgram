@@ -16,7 +16,8 @@ class RecipesPermission(permissions.BasePermission):
     ]
 
     def has_permission(self, request, view):
-        if (view.action in self.NO_AUTH_ACTION_LIST
+        if (
+            view.action in self.NO_AUTH_ACTION_LIST
             or request.user.is_authenticated
         ):
             return True
@@ -24,6 +25,6 @@ class RecipesPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if (view.action in (self.NO_AUTH_ACTION_LIST + self.AUTH_ACTION_LIST)
-            or request.user == obj.author):
+                or request.user == obj.author):
             return True
         return False

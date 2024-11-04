@@ -17,8 +17,9 @@ class UserPermission(permissions.BasePermission):
     )
 
     def has_permission(self, request, view):
-        if (view.action in self.NO_AUTH_ACTION_LIST
-                or request.user.is_authenticated
+        if (
+            view.action in self.NO_AUTH_ACTION_LIST
+            or request.user.is_authenticated
         ):
             return True
         return False

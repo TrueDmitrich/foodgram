@@ -3,6 +3,7 @@ from django.contrib import admin
 from api.models import Tag, Recipe, Ingredient, IngredientsForRecipe
 from api.views import User
 
+
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
 
@@ -49,4 +50,3 @@ class UserAdmin(admin.ModelAdmin):
 
     inlines = [FollowsInline, FavoritesRecipesInline, ShopListInline]
     exclude = ['follows', 'favorite_recipes', 'shop_list']
-

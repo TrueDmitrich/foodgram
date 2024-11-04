@@ -46,7 +46,8 @@ class AuthViewSet(UserViewSet):
         db = request.user.follows.through.objects
         # Не стал похожее объединять. Вроде того не стоит.
         if request.method == 'POST':
-            if (db.filter(user=request.user, follow=obj,).exists()
+            if (
+                db.filter(user=request.user, follow=obj,).exists()
                 or obj == request.user
             ):
                 return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -55,10 +56,12 @@ class AuthViewSet(UserViewSet):
                 follow=obj,
             )
             return Response(
-                data=UserFollRecipeSerializer(self.get_object(), context={'request': request}).data,
+                data=UserFollRecipeSerializer(
+                    self.get_object(), context={'request': request}).data,
                 status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
-            if not (db.filter(user=request.user, follow=obj,).exists()
+            if not (
+                db.filter(user=request.user, follow=obj,).exists()
                 or obj == request.user
             ):
                 return Response(status=status.HTTP_400_BAD_REQUEST)

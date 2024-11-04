@@ -12,8 +12,11 @@ class User(AbstractUser):
     last_name = models.CharField(max_length=150)
     email = models.EmailField(max_length=150, unique=True)
     avatar = models.ImageField(upload_to='media/users', blank=True)
-    follows = models.ManyToManyField('User', symmetrical=False, blank=True, through='UserFollows', related_name='+')
-    favorite_recipes = models.ManyToManyField('Recipe', related_name='+', blank=True)
+    follows = models.ManyToManyField(
+        'User', symmetrical=False, blank=True,
+        through='UserFollows', related_name='+')
+    favorite_recipes = models.ManyToManyField(
+        'Recipe', related_name='+', blank=True)
     shop_list = models.ManyToManyField('Recipe', related_name='+', blank=True)
 
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
@@ -24,12 +27,15 @@ class UserFollows(models.Model):
     """Подписки на пользователей."""
 
     # user подписан на follow
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folws' )
-    follow = models.ForeignKey(User, on_delete=models.CASCADE, related_name='who_follow')
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='folws')
+    follow = models.ForeignKey(User, on_delete=models.CASCADE,
+                               related_name='who_follow')
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'follow'], name='unique_follow'),
+            models.UniqueConstraint(
+                fields=['user', 'follow'], name='unique_follow'),
             models.CheckConstraint(
                 name='ban_self_follow',
                 check=~models.Q(user=F('follow'))
@@ -74,12 +80,14 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient, through='IngredientsForRecipe')
     tags = models.ManyToManyField(Tag, related_name='recipes')
-    cooking_time = models.PositiveIntegerField(verbose_name='Cooking time min:',
+    cooking_time = models.PositiveIntegerField(
+        verbose_name='Cooking time min:',
         validators=[MinValueValidator(1)])
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['author', 'name'], name='unique_author_rectipe')
+            models.UniqueConstraint(
+                fields=['author', 'name'], name='unique_author_rectipe')
         ]
 
     def __str__(self):
@@ -94,7 +102,8 @@ class IngredientsForRecipe(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['recipe', 'ingredient'], name='unique_rectipes_ingr')
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'], name='unique_rectipes_ingr')
         ]
 
     def __str__(self):

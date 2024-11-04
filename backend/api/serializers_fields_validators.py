@@ -3,19 +3,23 @@ import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
+
 def base64_validator(value):
     # raise serializers.ValidationError(code='required')
     return value
+
 
 def empty_list(value):
     if len(value) == 0:
         raise serializers.ValidationError('Empty list.')
     return value
 
+
 def unique_ingredients(value):
     if len(value) != len(set([v['ingredient'] for v in value])):
         raise serializers.ValidationError('Duplicate.')
     return value
+
 
 def unique_tags(value):
     if len(value) != len(set(value)):
@@ -30,7 +34,8 @@ class ImageBase64Field(serializers.ImageField):
     default_error_messages = {
         'required': 'This field is required.',
         'invalid_image': (
-            'Upload a valid image. The file you uploaded was either not an image or a corrupted image.'
+            'Upload a valid image. The file you uploaded was '
+            + 'either not an image or a corrupted image.'
         ),
     }
 
