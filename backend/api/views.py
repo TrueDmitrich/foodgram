@@ -120,7 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 + f'{shop_list[key]["measurement_unit"]}\n')
         with open('shop_list.txt', 'w', encoding='utf-8') as file_txt:
             file_txt.write(content)
-        return FileResponse('shop_list.txt', 'rb')
+        return FileResponse(content, 'rb')
 
     def post_delete_ckeck(self, request, db, obj):
         """Однотипные действия для shopping_cart, favorite."""
