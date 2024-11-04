@@ -57,23 +57,23 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 # Пока оставлю для тестов
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.getenv('POSTGRES_DB', 'django'),
-#         'USER': os.getenv('POSTGRES_USER', 'django'),
-#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
-#         'HOST': os.getenv('DB_HOST', 'db'),
-#         'PORT': os.getenv('DB_PORT', 5432)
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DB', 'django'),
+        'USER': os.getenv('POSTGRES_USER', 'django'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'db'),
+        'PORT': os.getenv('DB_PORT', 5432)
+    }
+}
 
 # AUTH_PASSWORD_VALIDATORS = [
 #     {
@@ -115,14 +115,11 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
-    # 'LOGIN_FIELD': 'email',
     'PERMISSIONS': {
         'user_list': ['rest_framework.permissions.AllowAny'],
         'user': ['rest_framework.permissions.AllowAny'],
     },
     'SERIALIZERS': {
         'current_user': 'users.serializers.UserSerializer',
-        # 'user_create': 'djoser.serializers.UserCreateSerializer',
-        # 'user_create': 'users.serializers.UserCreateSerializer2',
     }
 }
