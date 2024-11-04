@@ -1,18 +1,13 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F
 
 
-
 # Здесь чтоб не мучиться с цикличностью
 class User(AbstractUser):
     """Переопределенный User."""
 
-    # username_validator = UnicodeUsernameValidator()
-
-    # username = models.CharField(unique=True, max_length=150)
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     email = models.EmailField(max_length=150, unique=True)
@@ -24,11 +19,10 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
     USERNAME_FIELD = "email"
 
-    # class Meta(AbstractUser.Meta):
-    #     constraints = [
-
 
 class UserFollows(models.Model):
+    """Подписки на пользователей."""
+
     # user подписан на follow
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='folws' )
     follow = models.ForeignKey(User, on_delete=models.CASCADE, related_name='who_follow')
@@ -41,7 +35,6 @@ class UserFollows(models.Model):
                 check=~models.Q(user=F('follow'))
             )
         ]
-
 
 
 class Tag(models.Model):
@@ -106,50 +99,3 @@ class IngredientsForRecipe(models.Model):
 
     def __str__(self):
         return f'{self.ingredient.name} для {self.recipe.name[:10]}'
-
-
-class U(models.Model):
-
-    user = models.CharField(max_length=50)
-    follows = models.ManyToManyField('U', related_name='fol')
-    fav_rec = models.ManyToManyField('Rec', related_name='fav')
-    shop_list = models.ManyToManyField('Rec', related_name='shop')
-    def __str__(self):
-        return self.user
-
-class Rec(models.Model):
-    name = models.CharField(max_length=50)
-    def __str__(self):
-        return self.name
-
-
-# class FavoriteRecipe(UserField):
-#     """Избранные рецепты."""
-#
-#     favorite_recipes = models.ManyToManyField(Recipe, related_name='favorite_recipes', blank=True)
-#
-# class ShopList(UserField):
-#     """Покупки."""
-
-    shop_list = models.ManyToManyField(Recipe, related_name='shop_list', blank=True)
-
-
-
-# class TRecipe(models.Model):
-#     name = models.CharField(max_length=100)
-#
-# class TUser(models.Model):
-#     name = models.CharField(max_length=100)
-#     favorite_recipes = models.ManyToManyField(TRecipe, blank=True)
-#     shop_list = models.ManyToManyField(TRecipe, related_name='asdf', blank=True)
-#
-# TRecipe.objects.create(name='R1')
-
-#
-# class TFavRec(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, unique=False, related_name='favorite_recipes',)
-#     favorite_recipes = models.ForeignKey(TRecipe,  blank=True, on_delete=models.CASCADE)
-#
-# class TShop(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, unique=False, related_name='shop_list')
-#     shop_list = models.ForeignKey(TRecipe,  blank=True, on_delete=models.CASCADE)

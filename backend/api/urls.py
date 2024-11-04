@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework import routers
 
-from users.views import UserViewSet, AuthViewSet
+from users.views import AuthViewSet
 from api import views
 
 router = routers.DefaultRouter()

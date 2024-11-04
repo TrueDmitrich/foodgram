@@ -2,7 +2,6 @@ import base64
 
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from django.utils.translation import gettext_lazy as _
 
 def base64_validator(value):
     # raise serializers.ValidationError(code='required')
@@ -41,5 +40,4 @@ class ImageBase64Field(serializers.ImageField):
             ext = format.split('/')[-1]
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
             return super().to_internal_value(data)
-        # raise serializers.ValidationError(self.default_error_messages['invalid_image'])
         raise serializers.ValidationError(code='invalid_image')

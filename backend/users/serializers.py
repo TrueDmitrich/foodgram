@@ -2,10 +2,12 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from api.models import User
-from api.serializers_fields import ImageBase64Field
+from api.serializers_fields_validators import ImageBase64Field
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Отображение пользователей."""
+
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     avatar = ImageBase64Field(required=False)
 
@@ -24,10 +26,10 @@ class UserSerializer(serializers.ModelSerializer):
         return super().run_validation(data)
 
 class UserImageSerializer(serializers.ModelSerializer):
+    """Для работы с avatar."""
 
     avatar = ImageBase64Field(required=True)
 
     class Meta:
         model = User
         fields = ['avatar']
-

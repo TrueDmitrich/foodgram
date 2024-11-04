@@ -1,0 +1,35 @@
+version: '3'
+
+volumes:
+  pg_data:
+  static:
+  media:
+
+services:
+  db:
+    image: postgres:13
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+  backend:
+    image: truebatya/foodgram_backend
+    env_file: .env
+    volumes:
+      - media:/app/media
+      - static:/backend_static
+    depends_on:
+      - db
+  frontend:
+    image: truebatya/foodgram_frontend
+    command: cp -r /app/build/. /static/
+    volumes:
+      - static:/static
+  gateway:
+    image: truebatya/foodgram_gateway
+    ports:
+      - 8000:8000
+    volumes:
+      - static:/static
+      - media:/media
+    depends_on:
+      - backend
