@@ -27,7 +27,7 @@ services:
   gateway:
     image: truebatya/foodgram_gateway
     ports:
-      - 8000:80
+      - 8000:8000
     volumes:
       - static:/static
       - media:/media
