@@ -118,7 +118,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             content += (
                 f'{key} {shop_list[key]["amount"]}'
                 + f'{shop_list[key]["measurement_unit"]}\n')
-        return FileResponse(content)
+        return FileResponse(content, 'rb')
 
     def post_delete_ckeck(self, request, db, obj):
         """Однотипные действия для shopping_cart, favorite."""
