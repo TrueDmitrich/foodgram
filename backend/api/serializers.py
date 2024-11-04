@@ -93,7 +93,7 @@ class RecipeSerializer(BaseRecipeSerializer, GetUser):
 
     class Meta(BaseRecipeSerializer.Meta):
         fields = (BaseRecipeSerializer.Meta.fields
-                  + ['author', 'is_favorited', 'is_in_shopping_cart',])
+                  + ['author', 'is_favorited', 'is_in_shopping_cart'])
 
     def get_ingredients(self, obj):
         qs = IngredientsForRecipe.objects.filter(
