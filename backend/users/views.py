@@ -45,6 +45,8 @@ class AuthViewSet(UserViewSet):
         obj = self.get_object()
         db = request.user.follows.through.objects
         # Не стал похожее объединять. Вроде того не стоит.
+        # Хотел использовать get_object_or, но, из-за 2го усл,
+        # вроде не стоит
         if request.method == 'POST':
             if (
                 db.filter(user=request.user, follow=obj,).exists()

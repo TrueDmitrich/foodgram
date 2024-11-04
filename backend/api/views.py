@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 
+from api.filters import NameSearchFilter
 from api.models import Tag, Ingredient, Recipe, IngredientsForRecipe
 from api.permissions import RecipesPermission
 from api.serializers import (
@@ -29,8 +30,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = (SearchFilter,)
-    search_fields = ['^name']
+    filter_backends = (NameSearchFilter,)
+    search_fields = ('^name',)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -92,10 +93,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=True, url_path='get-link')
     def get_link(self, request, pk=None):
-        if not pk:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        recipe = get_object_or_404(Recipe, pk=pk)
         data = {
-            'short-link': request.build_absolute_uri().replace('get-link/', '')
+            'short-link': request.build_absolute_uri(f'/recipes/{recipe.id}')
         }
         return Response(data, status=status.HTTP_200_OK)
 
