@@ -26,7 +26,7 @@ class RecipeAdmin(admin.ModelAdmin):
 
     inlines = [IngredientsInline]
     search_fields = ('user__username', 'name')
-    # Фильтр по тегам
+    list_filter = ('tags',)
 
 
 class FollowsInline(admin.TabularInline):
