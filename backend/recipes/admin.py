@@ -1,7 +1,8 @@
 from django.contrib import admin
 
-from api.models import Tag, Recipe, Ingredient, IngredientsForRecipe
-from api.views import User
+from recipes.models import (
+    Tag, Recipe, Ingredient, IngredientsForRecipe, User,
+    UsersFollows, UsersFavoriteRecipes, UsersShopRecipes)
 
 
 @admin.register(Tag)
@@ -13,38 +14,40 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
 
-    search_fields = ('name',)
+    search_fields = ('name', 'measurement_unit')
+    list_filter = ('measurement_unit',)
 
 
 class IngredientsInline(admin.TabularInline):
 
     model = IngredientsForRecipe
+    min_num = 1
 
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
 
     inlines = [IngredientsInline]
-    search_fields = ('user__username', 'name')
+    search_fields = ('name', 'tags')
     list_filter = ('tags',)
 
 
 class FollowsInline(admin.TabularInline):
 
-    model = User.follows.through
+    model = UsersFollows
     fk_name = 'user'
     verbose_name_plural = 'Подписан на:'
 
 
 class FavoritesRecipesInline(admin.TabularInline):
 
-    model = User.favorite_recipes.through
+    model = UsersFavoriteRecipes
     verbose_name_plural = 'Избранные рецепты:'
 
 
 class ShopListInline(admin.TabularInline):
 
-    model = User.shop_list.through
+    model = UsersShopRecipes
     verbose_name_plural = 'Список рецептов к покупке:'
 
 
@@ -52,5 +55,4 @@ class ShopListInline(admin.TabularInline):
 class UserAdmin(admin.ModelAdmin):
 
     inlines = [FollowsInline, FavoritesRecipesInline, ShopListInline]
-    exclude = ['follows', 'favorite_recipes', 'shop_list']
     search_fields = ('username', 'first_name', 'last_name', 'email')
