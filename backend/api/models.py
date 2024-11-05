@@ -82,7 +82,7 @@ class Ingredient(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return f'{self.name} {self.measurement_unit}'
+        return f'{self.id} {self.name} {self.measurement_unit}'
 
 
 class Recipe(models.Model):
@@ -114,7 +114,7 @@ class Recipe(models.Model):
         ]
 
     def __str__(self):
-        return f'{self.id} {self.name}'
+        return f'{self.id} {self.name} {self.author.username} '
 
 
 class IngredientsForRecipe(models.Model):

@@ -12,10 +12,11 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    pass
+
+    search_fields = ('name',)
 
 
-class RecipeInline(admin.TabularInline):
+class IngredientsInline(admin.TabularInline):
 
     model = IngredientsForRecipe
 
@@ -23,7 +24,9 @@ class RecipeInline(admin.TabularInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
 
-    inlines = [RecipeInline]
+    inlines = [IngredientsInline]
+    search_fields = ('user__username', 'name')
+    # Фильтр по тегам
 
 
 class FollowsInline(admin.TabularInline):
@@ -50,3 +53,4 @@ class UserAdmin(admin.ModelAdmin):
 
     inlines = [FollowsInline, FavoritesRecipesInline, ShopListInline]
     exclude = ['follows', 'favorite_recipes', 'shop_list']
+    search_fields = ('username', 'first_name', 'last_name', 'email')
