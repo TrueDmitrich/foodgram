@@ -44,6 +44,7 @@ class TagsInline(admin.TabularInline):
 class RecipeAdmin(admin.ModelAdmin):
 
     list_display = ('name', 'author', 'cooking_time', 'image')
+    exclude = ('tags', 'ingredients')
     inlines = [IngredientsInline, TagsInline]
     search_fields = ('name', 'tags')
     list_filter = ('tags',)
