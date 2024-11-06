@@ -1,41 +1,39 @@
 from rest_framework import permissions
 
 
-class RecipesPermission(permissions.BasePermission):
-    """Разрешения для рецептов."""
+class AuthorOrReadOnly(permissions.BasePermission):
+    """Разрешения для User и Recipe API."""
+
+    AUTH_ACTIONS = (
+        'favorite',
+        'shopping_cart',
+        'download_shopping_cart',
+        'create',
+
+        'subscriptions',
+        'subscribe',
+        'me'
+    )
 
     def has_permission(self, request, view):
         if (
-            (request.method in permissions.SAFE_METHODS)
-            and (view.action != "download_shopping_cart")
+            (request.method in permissions.SAFE_METHODS
+                and view.action not in self.AUTH_ACTIONS)
             or request.user.is_authenticated
         ):
             return True
         return False
 
     def has_object_permission(self, request, view, obj):
+        def user_or_recipe(obj):
+            if hasattr(obj, 'author'):
+                return obj.author
+            return obj
+
         if (
-            view.action not in ("update", "partial_update", "destroy")
-            or request.user == obj.author
-        ):
-            return True
-        return False
-
-
-class UserPermission(permissions.BasePermission):
-    """Разрешения для пользователей."""
-
-    AUTH_ACTION_LIST = (
-        "avatar",
-        "me",
-        "subscriptions",
-        "subscribe",
-    )
-
-    def has_permission(self, request, view):
-        if (
-            view.action not in self.AUTH_ACTION_LIST
-            or request.user.is_authenticated
+            view.action in ('retrieve', 'get_link')
+            or view.action in self.AUTH_ACTIONS
+            or user_or_recipe(obj) == request.user
         ):
             return True
         return False
