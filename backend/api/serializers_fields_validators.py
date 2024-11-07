@@ -1,4 +1,5 @@
 import base64
+from collections import Counter
 
 from django.core.files.base import ContentFile
 from rest_framework import serializers
@@ -12,24 +13,11 @@ def empty_list(value):
 
 def validate_duplicates_in_list(values, value_name):
     if len(values) != len(set(values)):
-        cont_dict = {}
-        # В одну строку пока не придумал
-        for value in values:
-            cont_dict[value] = cont_dict.get(value, 0) + 1
         duplicate_list = [
-            value for value in cont_dict.keys() if cont_dict[value] > 1]
+            name for name, count in Counter(values).items() if count > 1]
         raise serializers.ValidationError(
             f'Дублирующиеся {value_name}: {duplicate_list}.')
     return values
-
-
-def unique_ingredients(ingredients):
-    return validate_duplicates_in_list(
-        [ing['ingredient'] for ing in ingredients], 'продукты')
-
-
-def unique_tags(tags):
-    return validate_duplicates_in_list(tags, 'теги')
 
 
 class Base64ImageField(serializers.ImageField):

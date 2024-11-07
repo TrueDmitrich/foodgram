@@ -1,5 +1,9 @@
 from rest_framework import permissions
 
+# class V2(permissions.DjangoModelPermissionsOrAnonReadOnly):
+#
+#     def has_object_permission(self, request, view, obj):
+
 
 class AuthorOrReadOnly(permissions.BasePermission):
     """Разрешения для User и Recipe API."""
@@ -16,24 +20,18 @@ class AuthorOrReadOnly(permissions.BasePermission):
     )
 
     def has_permission(self, request, view):
-        if (
-            (request.method in permissions.SAFE_METHODS
-                and view.action not in self.AUTH_ACTIONS)
+        return bool(
+            request.method in permissions.SAFE_METHODS
+            and (view.action not in self.AUTH_ACTIONS)
             or request.user.is_authenticated
-        ):
-            return True
-        return False
+        )
 
     def has_object_permission(self, request, view, obj):
         def user_or_recipe(obj):
-            if hasattr(obj, 'author'):
-                return obj.author
-            return obj
+            return obj.author if hasattr(obj, 'author') else obj
 
-        if (
+        return bool(
             view.action in ('retrieve', 'get_link')
             or view.action in self.AUTH_ACTIONS
             or user_or_recipe(obj) == request.user
-        ):
-            return True
-        return False
+        )

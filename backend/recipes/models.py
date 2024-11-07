@@ -39,17 +39,19 @@ class AbstractUserRecipe(models.Model):
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        verbose_name='Пользователь', related_name='%(class)s')
+        verbose_name='Пользователь')
     recipe = models.ForeignKey(
         'Recipe', on_delete=models.CASCADE,
-        verbose_name='Рецепт', related_name='%(class)s')
+        verbose_name='Рецепт')
 
     class Meta:
         abstract = True
         ordering = ('user',)
+        default_related_name = '%(class)ss'
         constraints = (
             models.UniqueConstraint(
-                fields=('user', 'recipe'), name='unique_user_recipe'),)
+                fields=('user', 'recipe'),
+                name='%(class)s_unique_user_recipe'),)
 
 
 class UsersFavoriteRecipes(AbstractUserRecipe):
@@ -66,7 +68,7 @@ class UsersFavoriteRecipes(AbstractUserRecipe):
 class UsersShopRecipes(AbstractUserRecipe):
     """Рецепты в списке покупок."""
 
-    class Meta:
+    class Meta(AbstractUserRecipe.Meta):
         verbose_name = 'Рецепт для корзины пользователя.'
         verbose_name_plural = 'Рецепты для корзины пользователей.'
 
