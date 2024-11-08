@@ -1,8 +1,8 @@
 # Заполнение базы
-from django.core.management import BaseCommand
-
-from recipes.models import Tag, Ingredient
 import json
+
+from django.core.management import BaseCommand
+from recipes.models import Tag, Ingredient
 
 
 class Command(BaseCommand):
