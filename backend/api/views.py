@@ -96,16 +96,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=True, url_path='get-link')
     def get_link(self, request, pk=None):
-        get_object_or_404(Recipe, pk=pk)
+        # Перенес логику в контроллер recipes
         return Response({
-            'short-link': request.build_absolute_uri(f'/s/{pk}')})
+            'short-link': request.build_absolute_uri(f'/s/{pk}/')})
 
     @action(methods=['get'], detail=False)
     def download_shopping_cart(self, request, pk=None):
         recipes = [r.recipe for r in request.user.usersshoprecipess.all()]
         data = (IngredientsForRecipe.objects.filter(
-            recipe__in=recipes).select_related('recipe', 'ingredient').values(
-                'ingredient__name', 'amount', 'ingredient__measurement_unit'))
+            recipe__in=recipes
+        ).select_related(
+            'recipe', 'ingredient'
+        ).values(
+            'ingredient__name', 'amount', 'ingredient__measurement_unit'
+        ))
         shop_list = {}
         for values in data:
             ingredient, amount, m_u = values.values()

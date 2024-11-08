@@ -27,7 +27,7 @@ class Base64ImageField(serializers.ImageField):
         'required': 'This field is required.',
         'invalid_image': (
             'Upload a valid image. The file you uploaded was '
-            + 'either not an image or a corrupted image.'
+            'either not an image or a corrupted image.'
         ),
     }
 

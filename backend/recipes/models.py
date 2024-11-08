@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import F
 
 from recipes.constants import (
-    MIN_VALUE_TO_RECIPE_COOK, MIN_VALUE_TO_INGREDIENT_AMOUNT)
+    MIN_RECIPE_COOK, MIN_INGREDIENT_AMOUNT)
 
 
 class User(AbstractUser):
@@ -149,7 +149,7 @@ class Recipe(models.Model):
         Tag, verbose_name='Теги')
     cooking_time = models.PositiveIntegerField(
         verbose_name='Время приготовления в минутах:',
-        validators=(MinValueValidator(MIN_VALUE_TO_RECIPE_COOK),))
+        validators=(MinValueValidator(MIN_RECIPE_COOK),))
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -174,7 +174,7 @@ class IngredientsForRecipe(models.Model):
         Ingredient, on_delete=models.CASCADE, verbose_name='Продукт')
     amount = models.PositiveIntegerField(
         'Количество',
-        validators=(MinValueValidator(MIN_VALUE_TO_INGREDIENT_AMOUNT),))
+        validators=(MinValueValidator(MIN_INGREDIENT_AMOUNT),))
 
     class Meta:
         ordering = ('recipe',)

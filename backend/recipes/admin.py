@@ -13,7 +13,7 @@ class TagAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     list_display = ('name', 'slug', 'recipes_count')
 
-    @admin.display(description='Рецептов с тегом.')
+    @admin.display(description='Рецептов.')
     def recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -24,7 +24,7 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name', 'measurement_unit')
     list_filter = ('measurement_unit',)
 
-    @admin.display(description='Рецептов с продуктом.')
+    @admin.display(description='Рецептов.')
     def recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -52,19 +52,23 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'tags')
     list_filter = ('tags',)
 
+    @mark_safe
     @admin.display(description='Фото')
     def recipe_image(self, recipe):
         if recipe.image:
-            return mark_safe(f'<img src="{recipe.image.url}"'
-                             f' width="150px" height="100px" />')
+            return (f'<img src="{recipe.image.url}"'
+                    ' width="150px" height="100px" />')
+        return '-'
 
+    @mark_safe
     @admin.display(description='Теги')
     def tags_list(self, recipe):
-        return ', '.join(tag.name for tag in recipe.tags.all())
+        return '<br>'.join(tag.name for tag in recipe.tags.all())
 
+    @mark_safe
     @admin.display(description='Продукты')
     def ingredients_list(self, recipe):
-        return ', '.join(tag.name for tag in recipe.ingredients.all())
+        return '<br>'.join(tag.name for tag in recipe.ingredients.all())
 
 
 class FollowsInline(admin.TabularInline):
@@ -102,10 +106,11 @@ class UserAdmin(DjoserUserAdmin):
             return mark_safe(
                 f'<img src="{user.avatar.url}"'
                 ' width="150px" height="100px" />')
+        return 'Не установлено.'
 
     @admin.display(description='ФИО')
     def full_name(self, user):
-        return user.first_name + ' ' + user.last_name
+        return f'{user.first_name} {user.last_name}'
 
     @admin.display(description='Рецептов.')
     def recipes_count(self, user):
