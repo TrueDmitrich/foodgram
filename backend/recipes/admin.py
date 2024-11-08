@@ -13,7 +13,7 @@ class TagAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     list_display = ('name', 'slug', 'recipes_count')
 
-    @admin.display(description='Рецептов.')
+    @admin.display(description='Рецептов')
     def recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -24,7 +24,7 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name', 'measurement_unit')
     list_filter = ('measurement_unit',)
 
-    @admin.display(description='Рецептов.')
+    @admin.display(description='Рецептов')
     def recipes_count(self, obj):
         return obj.recipes.count()
 
@@ -46,11 +46,11 @@ class RecipeAdmin(admin.ModelAdmin):
 
     list_display = (
         'name', 'author', 'cooking_time',
-        'recipe_image', 'tags_list', 'ingredients_list')
+        'recipe_image', 'tags_list', 'ingredients_list', 'cooking_time')
     exclude = ('tags', 'ingredients')
     inlines = [IngredientsInline, TagsInline]
     search_fields = ('name', 'tags')
-    list_filter = ('tags',)
+    list_filter = ('tags', 'author__username')
 
     @mark_safe
     @admin.display(description='Фото')
@@ -68,7 +68,13 @@ class RecipeAdmin(admin.ModelAdmin):
     @mark_safe
     @admin.display(description='Продукты')
     def ingredients_list(self, recipe):
-        return '<br>'.join(tag.name for tag in recipe.ingredients.all())
+        return '<br>'.join(['{} {} {}'.format(
+            note[0], note[1], note[2]
+        ) for note in recipe.ingredientsforrecipe.all().select_related(
+            'ingredient'
+        ).values_list(
+            'ingredient__name', 'amount', 'ingredient__measurement_unit'
+        )])
 
 
 class FollowsInline(admin.TabularInline):
@@ -112,14 +118,40 @@ class UserAdmin(DjoserUserAdmin):
     def full_name(self, user):
         return f'{user.first_name} {user.last_name}'
 
-    @admin.display(description='Рецептов.')
+    @admin.display(description='Рецептов')
     def recipes_count(self, user):
         return user.recipes.count()
 
-    @admin.display(description='Подписок.')
+    @admin.display(description='Подписок')
     def followers_count(self, user):
         return user.followers.count()
 
-    @admin.display(description='Подписчиков.')
+    @admin.display(description='Подписчиков')
     def subscribers_count(self, user):
         return user.authors.count()
+
+
+class AbstractUserRecipeAdmin(admin.ModelAdmin):
+
+    list_display = ('user', 'recipe')
+    search_fields = ('user__username', 'recipe__name')
+    list_filter = ('user__username', 'recipe__name')
+
+
+@admin.register(UsersFavoriteRecipes)
+class UsersFavoriteRecipesAdmin(AbstractUserRecipeAdmin):
+    """Избранные рецепты пользователей."""
+
+
+@admin.register(UsersShopRecipes)
+class UsersShopRecipesAdmin(AbstractUserRecipeAdmin):
+    """Рецепты для корзины пользователей."""
+
+
+@admin.register(Follows)
+class Follows(admin.ModelAdmin):
+    """Подписки пользователей."""
+
+    list_display = ('user', 'author')
+    search_fields = ('user__username', 'author__username')
+    list_filter = ('user__username', 'author__username')

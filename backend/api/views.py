@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
-from django.http import FileResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from djoser.views import UserViewSet
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from api.filters import NameSearchFilter
@@ -60,7 +62,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """API для рецептов."""
 
     serializer_class = RecipeSerializer
-    permission_classes = [AuthorOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, AuthorOrReadOnly]
 
     def get_queryset(self):
         qs = Recipe.objects.all().select_related(
@@ -96,9 +98,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=True, url_path='get-link')
     def get_link(self, request, pk=None):
-        # Перенес логику в контроллер recipes
+        if not Recipe.objects.filter(pk=pk).exists():
+            raise Http404('Некорректный объект для ссылки.')
         return Response({
-            'short-link': request.build_absolute_uri(f'/s/{pk}/')})
+            'short-link': self.request.build_absolute_uri(
+                reverse('recipes:redirect_short_link', kwargs={'pk': pk}))})
 
     @action(methods=['get'], detail=False)
     def download_shopping_cart(self, request, pk=None):
@@ -145,7 +149,7 @@ class AuthViewSet(UserViewSet):
     """Дополненный viewset из Djoser."""
 
     serializer_class = UserSerializer
-    permission_classes = (AuthorOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly, AuthorOrReadOnly)
 
     @action(methods=['put', 'delete'], url_path='me/avatar', detail=False)
     def avatar(self, request):

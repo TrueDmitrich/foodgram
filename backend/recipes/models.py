@@ -31,7 +31,7 @@ class User(AbstractUser):
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        return f'{self.id} {self.username}.'
+        return self.username
 
 
 class AbstractUserRecipe(models.Model):
@@ -80,10 +80,12 @@ class Follows(models.Model):
     """Подписки пользователей."""
 
     # user подписан на author
-    user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             related_name='followers')
-    author = models.ForeignKey(User, on_delete=models.CASCADE,
-                               related_name='authors')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='followers',
+        verbose_name='Пользователь')
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='authors',
+        verbose_name='Автор')
 
     class Meta:
         ordering = ('user',)
@@ -120,7 +122,7 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     """Продукты для рецептов."""
 
-    name = models.CharField('Наименование', max_length=100)
+    name = models.CharField('Наименование', max_length=100, unique=True)
     measurement_unit = models.CharField('Единица измерения', max_length=50)
 
     class Meta:
@@ -148,7 +150,7 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag, verbose_name='Теги')
     cooking_time = models.PositiveIntegerField(
-        verbose_name='Время приготовления в минутах:',
+        verbose_name='Время(мин):',
         validators=(MinValueValidator(MIN_RECIPE_COOK),))
     created_at = models.DateTimeField(auto_now_add=True)
 

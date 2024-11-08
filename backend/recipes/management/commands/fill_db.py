@@ -2,20 +2,21 @@
 from django.core.management import BaseCommand
 
 from recipes.models import Tag, Ingredient
-import csv
-
-
-tag_list = ['tag_1', 'tag_2', 'tag_3', 'tag_4', 'tag_5']
-tag_object_list = [Tag(name=tag, slug=tag) for tag in tag_list]
+import json
 
 
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        for tag in tag_object_list:
-            _, __ = Tag.objects.get_or_create(name=tag, slug=tag)
-        with open('ingredients.csv', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                _, __ = Ingredient.objects.get_or_create(
-                    name=row['name'], measurement_unit=row['unit'])
+        with open('data/ingredients.json', 'r', encoding='utf-8') as file:
+            Ingredient.objects.bulk_create((
+                Ingredient(**ingredient_json)
+                for ingredient_json in json.load(file)
+            ), ignore_conflicts=True)
+
+        with open('data/tags.json', 'r', encoding='utf-8') as file:
+            Tag.objects.bulk_create((
+                Tag(name=tag_name['name'],
+                    slug=tag_name['name']
+                    ) for tag_name in json.load(file)
+            ), ignore_conflicts=True)

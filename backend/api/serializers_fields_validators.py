@@ -24,10 +24,9 @@ class Base64ImageField(serializers.ImageField):
     """Изображение в формате base 64."""
 
     default_error_messages = {
-        'required': 'This field is required.',
+        'required': 'Поле пустое.',
         'invalid_image': (
-            'Upload a valid image. The file you uploaded was '
-            'either not an image or a corrupted image.'
+            'Изображение повреждено.'
         ),
     }
 

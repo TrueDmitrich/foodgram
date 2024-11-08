@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
 from djoser.serializers import UserSerializer as UserDjoserSerializer
 from rest_framework import serializers
 
 from api.serializers_fields_validators import (
     empty_list, Base64ImageField, validate_duplicates_in_list)
-from recipes.constants import MIN_INGREDIENT_AMOUNT
+from recipes.constants import MIN_INGREDIENT_AMOUNT, MIN_RECIPE_COOK
 from recipes.models import Tag, Ingredient, Recipe, IngredientsForRecipe
 
 
@@ -81,8 +80,7 @@ class IngredientForRecipeSerializer(serializers.ModelSerializer):
     name = serializers.StringRelatedField(source='ingredient.name')
     measurement_unit = serializers.StringRelatedField(
         source='ingredient.measurement_unit', read_only=True)
-    amount = serializers.IntegerField(
-        validators=[MinValueValidator(MIN_INGREDIENT_AMOUNT)])
+    amount = serializers.IntegerField(min_value=MIN_INGREDIENT_AMOUNT)
 
     class Meta:
         model = IngredientsForRecipe
@@ -178,6 +176,7 @@ class RecipeWriteSerializer(BaseRecipeSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all())
     ingredients = IngredientForRecipeSerializer(many=True)
+    cooking_time = serializers.IntegerField(min_value=MIN_RECIPE_COOK)
 
     class Meta(BaseRecipeSerializer.Meta):
         pass
@@ -212,7 +211,7 @@ class RecipeWriteSerializer(BaseRecipeSerializer):
         tags = validated_data.pop('tags', [])
         ingredients = validated_data.pop('ingredients', [])
         validated_data['author'] = self.get_user()
-        recipe = super(BaseRecipeSerializer, self).create(validated_data)
+        recipe = super().create(validated_data)
         recipe.tags.set(tags)
         self.ingredients_create(ingredients, recipe)
         return recipe
