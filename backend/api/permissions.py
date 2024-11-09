@@ -8,6 +8,7 @@ from rest_framework import permissions
 #         return (request.method in permissions.SAFE_METHODS
 #                 or obj.author == request.user)
 
+
 class AuthorOrReadOnly(permissions.BasePermission):
     """Разрешения для User и Recipe API."""
 

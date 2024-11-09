@@ -1,8 +1,8 @@
 import json
-from slugify import slugify
 
 from django.core.management import BaseCommand
-from recipes.models import Tag, Ingredient
+from recipes.models import Tag
+
 
 class Command(BaseCommand):
 

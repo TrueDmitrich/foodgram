@@ -70,10 +70,12 @@ class RecipeAdmin(admin.ModelAdmin):
     def ingredients_list(self, recipe):
         return '<br>'.join(
             '{} {} {}'.format(
-            note.ingredient.name, note.amount, note.ingredient.measurement_unit
-        ) for note in recipe.ingredientsforrecipe.all().select_related(
-            'ingredient'
-        ))
+                note.ingredient.name,
+                note.amount,
+                note.ingredient.measurement_unit
+            ) for note in recipe.ingredientsforrecipe.all().select_related(
+                'ingredient'
+            ))
 
 
 class FollowsInline(admin.TabularInline):
