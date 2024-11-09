@@ -68,13 +68,12 @@ class RecipeAdmin(admin.ModelAdmin):
     @mark_safe
     @admin.display(description='Продукты')
     def ingredients_list(self, recipe):
-        return '<br>'.join(['{} {} {}'.format(
-            note[0], note[1], note[2]
+        return '<br>'.join(
+            '{} {} {}'.format(
+            note.ingredient.name, note.amount, note.ingredient.measurement_unit
         ) for note in recipe.ingredientsforrecipe.all().select_related(
             'ingredient'
-        ).values_list(
-            'ingredient__name', 'amount', 'ingredient__measurement_unit'
-        )])
+        ))
 
 
 class FollowsInline(admin.TabularInline):

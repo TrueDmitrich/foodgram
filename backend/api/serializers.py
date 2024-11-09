@@ -136,23 +136,21 @@ class RecipeSerializer(BaseRecipeSerializer):
     def get_user(self):
         return self.context['request'].user
 
-    def get_is_favorited(self, recipe):
+    def check_recipe(self, recipe, action):
         if not self.get_user().is_authenticated:
             return False
-        favorite_recipes = self.get_user().usersfavoriterecipess.all()
-        if favorite_recipes:
-            return (recipe.id in list(
-                favorite_recipes.values_list('recipe_id'))[0])
-        return False
+        if action == 'favorite':
+            recipes_qs = self.get_user().usersfavoriterecipess.all()
+        else:
+            recipes_qs = self.get_user().usersshoprecipess.all()
+        return (recipe.id in [
+            note[0] for note in recipes_qs.values_list('recipe_id')])
+
+    def get_is_favorited(self, recipe):
+        return self.check_recipe(recipe, 'favorite')
 
     def get_is_in_shopping_cart(self, recipe):
-        if not self.get_user().is_authenticated:
-            return False
-        shop_list_recipes = self.get_user().usersshoprecipess.all()
-        if shop_list_recipes:
-            return (recipe.id in list(
-                shop_list_recipes.values_list('recipe_id'))[0])
-        return False
+        return self.check_recipe(recipe, 'in_shopping_cart')
 
 
 class SpecialRecipeSerializer(serializers.ModelSerializer):

@@ -99,7 +99,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=True, url_path='get-link')
     def get_link(self, request, pk=None):
         if not Recipe.objects.filter(pk=pk).exists():
-            raise Http404('Некорректный объект для ссылки.')
+            raise Http404(f'Некорректный объект для ссылки - "{pk}".')
         return Response({
             'short-link': self.request.build_absolute_uri(
                 reverse('recipes:redirect_short_link', kwargs={'pk': pk}))})
